@@ -1,0 +1,9 @@
+#name: small data flag
+#as: -march=hexagonv4
+#readelf: -WS
+
+#...
+Section Headers:
+#...
+  \[..\] random            PROGBITS        00000000 000... 000004 00 WAp  0   0  4
+#...

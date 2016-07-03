@@ -1,0 +1,176 @@
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node Hexagon-Dependent
+@chapter Hexagon Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter Hexagon Dependent Features
+@end ifclear
+
+@cindex Hexagon support
+@menu
+* Hexagon-Opts::                   Hexagon Options
+* Hexagon-Directives::             Hexagon Machine Directives
+* Hexagon-Syntax::                 Hexagon Syntax  
+@end menu
+
+@node Hexagon-Opts
+@section Hexagon Options
+
+@cindex options, Hexagon
+@cindex Hexagon options
+The Qualcomm Hexagon version of @code{@value{AS}} has a few machine
+dependent options:
+
+@table @code
+
+@cindex @code{-G} option, Hexagon
+@item -G @var{size}
+Set the maximum size of objects in the small-data area, accessible via
+the GP register, to @var{size} (default is 8).
+
+@cindex @code{-march=} option, Hexagon
+@item -march=@var{version}
+Generate code for the specified Hexagon version.
+The following version names are valid:
+@code{v2}, @code{v3}, @code{v4}, and @code{v5}.
+
+@cindex @code{-mcpu=} option, Hexagon
+@item -mcpu=@var{version}
+Equivalent to @code{-march=@var{version}}.
+
+@cindex @code{-mv2} option, Hexagon
+@cindex @code{-mv3} option, Hexagon
+@cindex @code{-mv4} option, Hexagon
+@cindex @code{-mv5} option, Hexagon
+@item -mv2
+@itemx -mv3
+@itemx -mv4
+@itemx -mv5
+Generate code for the given Hexagon version.  Equivalent to the corresponding
+@code{-march} option.
+
+@cindex @code{-mno-dealloc_return} option, Hexagon
+@item -mno-dealloc_return
+Disable use of the dealloc_return instruction in Hexagon V4 and later.
+
+@cindex @code{-mno-extender} option, Hexagon
+@item -mno-extender
+Disable the use of constant extenders in Hexagon V4 and V5.
+
+@cindex @code{-mfalign-info} option, Hexagon
+@item -mfalign-info
+Report statistics for the effects of the directive @code{.falign}.
+
+@cindex @code{-mfalign-warn} option, Hexagon
+@item -mfalign-warn
+Warn when the directive @code{.falign} results in padding instructions
+being added.
+
+@cindex @code{-mno-jumps} option, Hexagon
+@item -mno-jumps
+Disable automatic extension of some branch instructions in Hexagon V4 and V5.
+
+@cindex @code{-mno-jumps-long} option, Hexagon
+@item -mno-jumps-long
+Disable automatic extension of long (non-paired)
+branch instructions in Hexagon V4 and V5.
+
+@cindex @code{-mno-pairing} option, Hexagon
+@item -mno-pairing
+Disable pairing of packet instructions in Hexagon V4 and V5.
+
+@cindex @code{-mno-pairing-branch} option, Hexagon
+@item -mno-pairing-branch
+Disable pairing of branch instructions in Hexagon V4 and V5.
+
+@cindex @code{-mno-pairing-duplex} option, Hexagon
+@item -mno-pairing-duplex
+Disable pairing to duplex instructions in Hexagon V4 and V5.
+
+@cindex @code{-mpairing-info} option, Hexagon
+@item -mpairing-info
+Report about instruction pairing in Hexagon V4 and V5.
+
+@cindex @code{-msort-sda} option, Hexagon
+@item -msort-sda
+Sort objects in the small-data area in ascending order by their access size.
+@code{-mno-sort-sda} disables this default behavior.
+
+@end table
+
+@node Hexagon-Directives
+@section Hexagon Machine Directives
+
+@cindex machine directives, Hexagon
+@cindex Hexagon machine directives
+@table @code
+
+@cindex @code{.falign} directive, Hexagon
+@item .falign
+The @code{.falign} directive guarantees that the next instruction packet does
+not cross a 16-byte address boundary, thereby avoiding a fetch stall, by adding
+NOP instructions to preceding instruction packets if necessary.
+
+@cindex @code{.comm} directive, Hexagon
+@item .comm
+The @code{.comm} directive accepts an additional optional
+argument that specifies the access size of global objects thus defined.  If
+omitted, then the natural access size for the object alignment is assumed.  When
+the option @code{-msort-sda} is specified, the objects in the
+small-data area are sorted in ascending order by their access sizes.
+
+@cindex @code{.lcomm} directive, Hexagon
+@item .lcomm
+The @code{.lcomm} directive accepts an additional optional
+argument that specifies the access size of local objects thus defined,
+similarly to @code{.comm}.
+
+@end table
+
+@node Hexagon-Syntax
+@section Hexagon Syntax
+@cindex syntax, Hexagon
+@cindex Hexagon syntax
+
+GAS implements some extensions to the standard Hexagon assembly syntax
+to support constant references.
+
+@table @code
+@item CONST32(#@var{number}|@var{label})
+@itemx CONST64(#@var{number}|@var{label})
+@itemx CONST64(#@var{number}|@var{label}, #@var{number}|@var{label})
+
+The @code{CONST32} and @code{CONST64} pseudo-operands can be used in
+register assignments to put the indicated constant value in the
+literal pool and generate a GP-relative reference to it.  For example,
+@example
+r0 = CONST32(#0xdeadbeef)
+@end example
+@noindent
+is translated to
+@example
+.CONST_deadbeef:
+.word 0xdeadbeef
+...
+r0 = memw (#.CONST_deadbeef)
+@end example
+
+@item LO(@var{number}|@var{label})
+@itemx HI(@var{number}|@var{label})
+
+The @code{LO} and @code{HI} pseudo-operands can be used to refer to
+the low or high (respectively) 16 bits of a 32-bit literal.  This provides 
+an easy way to do piecewise register assignments.  For example, the pair
+of instructions
+@example
+r0.h = #HI(0xdeadbeef)
+r0.l = #LO(0xdeadbeef)
+@end example
+@noindent
+together initialize @code{r0} to the constant @code{0xdeadbeef}.
+
+@end table

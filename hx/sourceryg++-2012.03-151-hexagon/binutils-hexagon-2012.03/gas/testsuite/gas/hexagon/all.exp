@@ -1,0 +1,5 @@
+# Hexagon-specific assembler tests
+
+if {[istarget hexagon-*-*]} {
+    run_dump_tests [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+}
